@@ -21,12 +21,12 @@ export default function HomePage() {
       <LandingNav />
       <HeroSection />
       <StatsSection />
+      <WorkerCardsSection />
       <PopularCategoriesSection />
       <HowItWorksSection />
       <FeaturedProsSection />
-      <WorkerCardsSection />
-      <TestimonialsSection />
       <TrustSection />
+      <TestimonialsSection />
       <FaqSection />
       <AppDownloadSection />
       <ServiceAreasSection />
