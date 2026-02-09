@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { loadGoogleMaps } from "@/lib/load-google-maps";
-import { CategoryDropdown } from "../_components/CategoryDropdown";
+import { Loader } from "../_components/Loader";
+import { SearchBar } from "../_components/SearchBar";
 import { useServiceTypes } from "@/lib/hooks/useServiceTypes";
 
 type WorkerCard = {
@@ -49,7 +49,6 @@ export default function FindWorkerPage() {
   const [locationHint, setLocationHint] = useState<string | null>(null);
   const { services: apiServices } = useServiceTypes({ includeAll: true });
   const serviceOptions = apiServices.map((service) => service.name);
-  const locationInputRef = useRef<HTMLInputElement | null>(null);
   const categoryRef = useRef(selectedCategories);
   const distanceRef = useRef(distance);
 
@@ -160,34 +159,7 @@ export default function FindWorkerPage() {
     router.replace(qs ? `/find?${qs}` : "/find");
   };
 
-  useEffect(() => {
-    let autocomplete: google.maps.places.Autocomplete | null = null;
-
-    loadGoogleMaps()
-      .then(() => {
-        if (!locationInputRef.current) return;
-        autocomplete = new google.maps.places.Autocomplete(locationInputRef.current, {
-          types: ["geocode"],
-          fields: ["formatted_address", "geometry"],
-        });
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete?.getPlace();
-          const loc = place?.geometry?.location;
-          const latValue = loc ? (typeof loc.lat === "function" ? loc.lat() : loc.lat) : undefined;
-          const lngValue = loc ? (typeof loc.lng === "function" ? loc.lng() : loc.lng) : undefined;
-          const formatted = place?.formatted_address ?? locationInputRef.current?.value ?? locationText;
-          setLocationText(formatted);
-          setLat(latValue);
-          setLng(lngValue);
-          handleFilterChange(categoryRef.current, distanceRef.current, formatted, latValue, lngValue);
-        });
-      })
-      .catch(() => {});
-
-    return () => {
-      if (autocomplete) google.maps.event.clearInstanceListeners(autocomplete);
-    };
-  }, []);
+  // Autocomplete handled by shared SearchBar component.
 
   // Do not auto-resolve location on mount; only resolve on button click.
 
@@ -299,99 +271,90 @@ export default function FindWorkerPage() {
           </aside>
 
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 rounded-[16px] border border-neutral-border bg-white p-3 lg:flex-row lg:items-center lg:gap-4">
-              <div className="w-full lg:w-[220px]">
-                <CategoryDropdown
-                  options={serviceOptions}
-                  values={selectedCategories}
-                  onChange={(values) => {
-                    const cleaned = values.includes("All Services") ? ["All Services"] : values;
-                    setSelectedCategories(cleaned);
-                    handleFilterChange(cleaned, distance);
-                  }}
-                  placeholder="Search services..."
-                  buttonClassName="h-[44px] px-4 py-2 text-[13px]"
-                />
-              </div>
-
-              <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-neutral-border bg-white px-4 py-2">
-                <span className="text-neutral-muted">📍</span>
-                <input
-                  ref={locationInputRef}
-                  value={locationText}
-                  onChange={(event) => setLocationText(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                    }
-                  }}
-                  placeholder="Enter a location"
-                  className="flex-1 text-[13px] text-black placeholder:text-neutral-muted focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    void resolveBrowserLocation();
-                  }}
-                  className="text-[12px] font-medium text-brand-green whitespace-nowrap"
-                >
-                  Use my location
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof lat === "number" && typeof lng === "number") {
-                    runSearch(lat, lng);
-                    return;
-                  }
-                  if (locationText.trim()) {
-                    void resolveLocation(locationText).then((coords) => {
-                      if (coords) runSearch(coords.lat, coords.lng);
-                    });
-                    return;
-                  }
-                  runSearch();
-                }}
-                className="rounded-[12px] bg-brand-green px-5 py-3 text-[12px] font-semibold text-white lg:h-[44px]"
-              >
-                Update results
-              </button>
-            </div>
+            <SearchBar
+              size="hero"
+              fullWidth
+              serviceOptions={serviceOptions}
+              selectedServices={selectedCategories}
+              onServicesChange={(values) => {
+                const cleaned = values.includes("All Services") ? ["All Services"] : values;
+                setSelectedCategories(cleaned);
+                handleFilterChange(cleaned, distance);
+              }}
+              locationValue={locationText}
+              onLocationChange={(value) => {
+                setLocationText(value);
+                setLat(undefined);
+                setLng(undefined);
+                setLocationHint(null);
+              }}
+              onPlaceSelected={(formatted, nextLat, nextLng) => {
+                setLocationText(formatted);
+                setLat(nextLat);
+                setLng(nextLng);
+                handleFilterChange(categoryRef.current, distanceRef.current, formatted, nextLat, nextLng);
+              }}
+              onUseMyLocation={() => {
+                void resolveBrowserLocation();
+              }}
+              onSearch={() => {
+                if (typeof lat === "number" && typeof lng === "number") {
+                  runSearch(lat, lng);
+                  return;
+                }
+                if (locationText.trim()) {
+                  void resolveLocation(locationText).then((coords) => {
+                    if (coords) runSearch(coords.lat, coords.lng);
+                  });
+                  return;
+                }
+                runSearch();
+              }}
+              forceIcon
+              placeholderService="Search services..."
+              placeholderLocation="Enter a location"
+            />
             {locationHint ? (
               <p className="text-[11px] text-neutral-muted">{locationHint}</p>
             ) : null}
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {loading ? (
-                <div className="text-[13px] text-neutral-muted">Loading workers...</div>
-              ) : null}
-              {error ? (
-                <div className="text-[13px] text-red-500">{error}</div>
-              ) : null}
-              {!loading && !error && workers.length === 0 ? (
-                <div className="text-[13px] text-neutral-muted">No workers found.</div>
-              ) : null}
-              {workers.map((pro) => (
+            {loading ? (
+              <Loader label="Loading workers..." />
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {error ? (
+                  <div className="text-[13px] text-red-500">{error}</div>
+                ) : null}
+                {!error && workers.length === 0 ? (
+                  <div className="text-[13px] text-neutral-muted">No workers found.</div>
+                ) : null}
+                {workers.map((pro) => (
                 <article
                   key={pro.id}
-                  className="overflow-hidden rounded-[16px] border border-neutral-border bg-white shadow-sm"
+                  className="group overflow-hidden rounded-[16px] border border-neutral-border bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
                 >
-                  <div className="relative h-[140px] w-full">
+                  <div className="relative h-[150px] w-full">
                     <div className="h-full w-full bg-[#f3f3f3]" />
-                    <div className="absolute bottom-3 left-3 h-10 w-10 rounded-full border-2 border-white bg-white" />
+                    <div className="absolute bottom-3 left-3 flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full border-2 border-white bg-white" />
+                      <span className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-black">
+                        Verified
+                      </span>
+                    </div>
                   </div>
                   <div className="p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-[14px] font-semibold text-black">{pro.name}</h3>
                         <p className="text-[11px] text-neutral-muted">
                           {pro.skills?.[0] ?? "Service Pro"} · {pro.experienceYears} yrs exp
                         </p>
                       </div>
-                      <span className="text-[11px] text-brand-green">✔</span>
+                      <button className="rounded-full border border-neutral-border px-2 py-1 text-[10px] text-neutral-muted hover:border-brand-green hover:text-brand-green">
+                        Save
+                      </button>
                     </div>
+
                     <div className="mt-3 flex items-center gap-4 text-[11px] text-neutral-muted">
                       <span>⭐ {pro.rating} ({pro.totalReviews})</span>
                       <span>
@@ -399,16 +362,37 @@ export default function FindWorkerPage() {
                         {typeof pro.distance === "number" ? ` · ${pro.distance.toFixed(1)} mi` : ""}
                       </span>
                     </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(pro.skills ?? []).slice(0, 3).map((skill) => (
+                        <span
+                          key={`${pro.id}-${skill}`}
+                          className="rounded-full border border-[#d7f2e3] bg-[#dbf7e5] px-2 py-1 text-[10px] font-medium text-black"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {(pro.skills?.length ?? 0) > 3 ? (
+                        <span className="rounded-full border border-neutral-border bg-white px-2 py-1 text-[10px] text-neutral-muted">
+                          +{(pro.skills?.length ?? 0) - 3} more
+                        </span>
+                      ) : null}
+                    </div>
+
                     <div className="mt-4 flex items-center justify-between">
-                      <span className="text-[12px] font-semibold text-black">₹{pro.pricePerService}/hr</span>
-                      <button className="rounded-[10px] bg-brand-mint px-3 py-2 text-[11px] font-semibold text-black">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[12px] font-semibold text-black">₹{pro.pricePerService}/hr</span>
+                        <span className="text-[11px] text-neutral-muted">📞 {pro.phone}</span>
+                      </div>
+                      <button className="rounded-[10px] bg-brand-green px-3 py-2 text-[11px] font-semibold text-white transition-all group-hover:translate-x-0.5">
                         View Profile
                       </button>
                     </div>
                   </div>
                 </article>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

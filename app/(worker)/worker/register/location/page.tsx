@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRegistration } from "../_components/RegistrationProvider";
-import { useRegisterWorkerStep2Mutation } from "@/lib/api/workerRegistrationApi";
+import { useRegisterWorkerStep3Mutation } from "@/lib/api/workerRegistrationApi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFieldErrors } from "@/lib/hooks/useServerFieldErrors";
 import { loadGoogleMaps } from "@/lib/load-google-maps";
@@ -18,7 +18,7 @@ export default function WorkerRegisterLocationPage() {
   const router = useRouter();
   const { data, setLocation } = useRegistration();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [registerWorkerStep2, { isLoading }] = useRegisterWorkerStep2Mutation();
+  const [registerWorkerStep3, { isLoading }] = useRegisterWorkerStep3Mutation();
 
   const {
     register,
@@ -57,12 +57,12 @@ export default function WorkerRegisterLocationPage() {
     setSubmitError(null);
 
     if (!data.userId) {
-      setSubmitError("Please complete step 1 first.");
+      setSubmitError("Please complete steps 1-2 first.");
       return;
     }
 
     try {
-      await registerWorkerStep2({
+      await registerWorkerStep3({
         userId: data.userId,
         street: values.street,
         unit: values.unit,
@@ -178,30 +178,36 @@ export default function WorkerRegisterLocationPage() {
       <section className="bg-[#dbf7e5] px-6 py-[64px] sm:px-12 lg:px-[24px]">
         <div className="mx-auto w-full max-w-[680px] rounded-[24px] border border-[#e8e8e8] bg-white shadow-[0px_4px_24px_0px_rgba(0,0,0,0.04)]">
           <div className="px-12 pt-10">
-            <Link href="/worker/register" className="text-[12px] leading-[18px] text-neutral-muted">
-              ← Back to Account Info
+            <Link href="/worker/register/work-details" className="text-[12px] leading-[18px] text-neutral-muted">
+              ← Back to Work Details
             </Link>
           </div>
 
           <div className="relative flex items-center justify-center px-12 pt-6">
-            <div className="absolute left-1/2 top-[16px] h-[2px] w-[200px] -translate-x-1/2 bg-[#e8e8e8]">
-              <div className="h-full w-[66%] bg-brand-green" />
+            <div className="absolute left-1/2 top-[16px] h-[2px] w-[240px] -translate-x-1/2 bg-[#e8e8e8]">
+              <div className="h-full w-[75%] bg-brand-green" />
             </div>
-            <div className="flex w-[100px] flex-col items-center gap-2">
+            <div className="flex w-[90px] flex-col items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
-                1
+                ✓
               </div>
-              <span className="text-[12px] font-semibold leading-[18px] text-black">Account Info</span>
+              <span className="text-[12px] font-semibold leading-[18px] text-black">Account</span>
             </div>
-            <div className="flex w-[100px] flex-col items-center gap-2">
+            <div className="flex w-[90px] flex-col items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
-                2
+                ✓
+              </div>
+              <span className="text-[12px] font-semibold leading-[18px] text-black">Work Details</span>
+            </div>
+            <div className="flex w-[90px] flex-col items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
+                3
               </div>
               <span className="text-[12px] font-semibold leading-[18px] text-black">Location</span>
             </div>
-            <div className="flex w-[100px] flex-col items-center gap-2">
+            <div className="flex w-[90px] flex-col items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#e8e8e8] p-[2px] text-[14px] font-semibold text-neutral-muted">
-                3
+                4
               </div>
               <span className="text-[12px] font-medium leading-[18px] text-neutral-muted">Verify</span>
             </div>

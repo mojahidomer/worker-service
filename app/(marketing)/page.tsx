@@ -5,6 +5,7 @@ import {
   PopularCategoriesSection,
   HowItWorksSection,
   FeaturedProsSection,
+  WorkerCardsSection,
   TestimonialsSection,
   TrustSection,
   FaqSection,
@@ -23,6 +24,7 @@ export default function HomePage() {
       <PopularCategoriesSection />
       <HowItWorksSection />
       <FeaturedProsSection />
+      <WorkerCardsSection />
       <TestimonialsSection />
       <TrustSection />
       <FaqSection />

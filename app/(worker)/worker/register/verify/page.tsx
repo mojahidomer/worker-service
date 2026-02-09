@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { useRegisterWorkerStep3Mutation } from "@/lib/api/workerRegistrationApi";
+import { useRegisterWorkerStep4Mutation } from "@/lib/api/workerRegistrationApi";
 import { useServerFieldErrors } from "@/lib/hooks/useServerFieldErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRegistration } from "../_components/RegistrationProvider";
@@ -17,7 +17,7 @@ export default function WorkerRegisterVerifyPage() {
   const router = useRouter();
   const { data, setVerification } = useRegistration();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [registerWorkerStep3, { isLoading }] = useRegisterWorkerStep3Mutation();
+  const [registerWorkerStep4, { isLoading }] = useRegisterWorkerStep4Mutation();
 
   const {
     register,
@@ -48,9 +48,9 @@ export default function WorkerRegisterVerifyPage() {
     setSubmitError(null);
     try {
       if (!data.userId) {
-        throw new Error("Please complete step 1 and 2 first.");
+        throw new Error("Please complete steps 1-3 first.");
       }
-      await registerWorkerStep3({
+      await registerWorkerStep4({
         userId: data.userId,
         idFront: Boolean(values.idFront?.length),
         idBack: Boolean(values.idBack?.length),
@@ -92,24 +92,30 @@ export default function WorkerRegisterVerifyPage() {
           </div>
 
           <div className="relative flex items-center justify-center px-12 pt-6">
-            <div className="absolute left-1/2 top-[16px] h-[2px] w-[200px] -translate-x-1/2 bg-[#e8e8e8]">
+            <div className="absolute left-1/2 top-[16px] h-[2px] w-[240px] -translate-x-1/2 bg-[#e8e8e8]">
               <div className="h-full w-full bg-brand-green" />
             </div>
-            <div className="flex w-[100px] flex-col items-center gap-2">
+            <div className="flex w-[90px] flex-col items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
                 ✓
               </div>
               <span className="text-[12px] font-semibold leading-[18px] text-black">Account</span>
             </div>
-            <div className="flex w-[100px] flex-col items-center gap-2">
+            <div className="flex w-[90px] flex-col items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
+                ✓
+              </div>
+              <span className="text-[12px] font-semibold leading-[18px] text-black">Work Details</span>
+            </div>
+            <div className="flex w-[90px] flex-col items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
                 ✓
               </div>
               <span className="text-[12px] font-semibold leading-[18px] text-black">Location</span>
             </div>
-            <div className="flex w-[100px] flex-col items-center gap-2">
+            <div className="flex w-[90px] flex-col items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-green p-[2px] text-[14px] font-semibold text-white">
-                3
+                4
               </div>
               <span className="text-[12px] font-semibold leading-[18px] text-black">Verify</span>
             </div>

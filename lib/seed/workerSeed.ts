@@ -92,6 +92,8 @@ export async function seedWorkers(count = 10000) {
         email,
         skills,
         experienceYears,
+        workDescription: faker.lorem.sentences({ min: 1, max: 2 }),
+        payType: faker.helpers.arrayElement(["HOURLY", "DAILY", "WEEKLY", "MONTHLY"]),
         pricePerService,
         serviceRadiusKm: faker.number.int({ min: 10, max: 60 }),
         rating: faker.number.float({ min: 3.8, max: 5, fractionDigits: 1 }),

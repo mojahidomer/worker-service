@@ -38,6 +38,13 @@ enum PaymentStatus {
   PENDING
 }
 
+enum PayType {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
 enum PayerType {
   USER
   WORKER
@@ -155,6 +162,8 @@ model Worker {
 
   skills            String[]
   experienceYears   Int
+  workDescription   String?       @map("work_description")
+  payType           PayType       @default(HOURLY) @map("pay_type")
   pricePerService   Float
 
   serviceRadiusKm   Int           @default(5)

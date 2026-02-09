@@ -7,9 +7,14 @@ type AccountInfo = {
   phone: string;
   email: string;
   password: string;
+};
+
+type WorkDetailsInfo = {
   experienceYears: number;
   skills: string[];
   workDescription?: string;
+  payType: "HOURLY" | "DAILY" | "WEEKLY" | "MONTHLY";
+  rate: number;
 };
 
 type LocationInfo = {
@@ -32,6 +37,7 @@ type VerificationInfo = {
 
 type RegistrationData = {
   account: AccountInfo;
+  workDetails: WorkDetailsInfo;
   location: LocationInfo;
   verification: VerificationInfo;
   userId?: string;
@@ -41,6 +47,7 @@ type RegistrationData = {
 type RegistrationContextValue = {
   data: RegistrationData;
   setAccount: (values: AccountInfo) => void;
+  setWorkDetails: (values: WorkDetailsInfo) => void;
   setLocation: (values: LocationInfo) => void;
   setVerification: (values: VerificationInfo) => void;
   setUserIds: (ids: { userId?: string; workerId?: string }) => void;
@@ -52,9 +59,13 @@ const defaultData: RegistrationData = {
     phone: "",
     email: "",
     password: "",
+  },
+  workDetails: {
     experienceYears: 0,
     skills: [],
     workDescription: "",
+    payType: "HOURLY",
+    rate: 0,
   },
   location: {
     street: "",
@@ -83,6 +94,7 @@ export function RegistrationProvider({ children }: { children: React.ReactNode }
     () => ({
       data,
       setAccount: (values) => setData((prev) => ({ ...prev, account: values })),
+      setWorkDetails: (values) => setData((prev) => ({ ...prev, workDetails: values })),
       setLocation: (values) => setData((prev) => ({ ...prev, location: values })),
       setVerification: (values) => setData((prev) => ({ ...prev, verification: values })),
       setUserIds: (ids) =>

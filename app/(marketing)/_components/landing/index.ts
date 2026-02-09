@@ -5,6 +5,7 @@ export { StatsSection } from "./sections/StatsSection";
 export { PopularCategoriesSection } from "./sections/PopularCategoriesSection";
 export { HowItWorksSection } from "./sections/HowItWorksSection";
 export { FeaturedProsSection } from "./sections/FeaturedProsSection";
+export { WorkerCardsSection } from "./sections/WorkerCardsSection";
 export { TestimonialsSection } from "./sections/TestimonialsSection";
 export { TrustSection } from "./sections/TrustSection";
 export { FaqSection } from "./sections/FaqSection";

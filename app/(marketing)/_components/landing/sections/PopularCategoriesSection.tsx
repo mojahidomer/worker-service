@@ -10,25 +10,25 @@ const SERVICES = [
     title: "Plumbing",
     description: "Leaks, installs, and more",
     icon: plumbingIcon,
-    slug: "plumbing",
+    slug: "Plumbing",
   },
   {
     title: "Electrician",
     description: "Wiring, lighting, repairs",
     icon: electricianIcon,
-    slug: "electrical",
+    slug: "Electrician",
   },
   {
     title: "Home Cleaning",
     description: "Regular or deep clean",
     icon: cleaningIcon,
-    slug: "cleaning",
+    slug: "Home Cleaning",
   },
   {
     title: "Appliance Repair",
     description: "Fixing washers, dryers, etc.",
     icon: applianceIcon,
-    slug: "appliance-repair",
+    slug: "Appliance Repair",
   },
 ];
 
@@ -53,7 +53,7 @@ export function PopularCategoriesSection() {
           {SERVICES.map((s) => (
             <Link
               key={s.slug}
-              href={`/#services?category=${s.slug}`}
+              href={`/find?skill=${encodeURIComponent(s.slug)}`}
               className="flex flex-col items-center gap-4 px-[25px] py-[33px] bg-[#FBFAF9] border border-neutral-border rounded-[12px] transition-colors"
             >
               <div className="w-16 h-16 rounded-[32px] bg-brand-mint flex items-center justify-center shrink-0">

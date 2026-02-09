@@ -2,19 +2,18 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
-const registerWorkerStep2Schema = z.object({
+const registerWorkerStep4Schema = z.object({
   userId: z.string().min(1, "User id is required"),
-  skills: z.array(z.string()).min(1, "Skills are required").max(50),
-  experienceYears: z.number().int().min(0, "Experience must be 0 or more").max(100, "Max 100 years"),
-  workDescription: z.string().max(2000).optional(),
-  payType: z.enum(["HOURLY", "DAILY", "WEEKLY", "MONTHLY"]),
-  rate: z.number().min(0, "Rate must be 0 or more"),
+  idFront: z.boolean().optional(),
+  idBack: z.boolean().optional(),
+  license: z.boolean().optional(),
+  consent: z.boolean().refine((val) => val, "Consent is required"),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const parsed = registerWorkerStep2Schema.safeParse(body);
+    const parsed = registerWorkerStep4Schema.safeParse(body);
 
     if (!parsed.success) {
       const errors = parsed.error.flatten().fieldErrors;
@@ -22,37 +21,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const { userId, skills, experienceYears, workDescription, payType, rate } = parsed.data;
+    const { userId } = parsed.data;
 
-    const worker = await prisma.worker.findUnique({
-      where: { userId },
-      select: { id: true },
-    });
+    const worker = await prisma.worker.findUnique({ where: { userId }, select: { id: true } });
     if (!worker) {
       return NextResponse.json({ error: "Worker not found for this user." }, { status: 404 });
     }
 
+    // Keep status INACTIVE until payment is completed.
     await prisma.worker.update({
       where: { id: worker.id },
       data: {
-        skills,
-        experienceYears,
-        payType,
-        workDescription,
-        pricePerService: rate,
+        status: "INACTIVE",
+        profileVisible: false,
       },
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Step 2 completed",
-        workerId: worker.id,
+        message: "Step 4 completed. Verification submitted for review.",
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Worker registration step-2 error:", error);
+    console.error("Worker registration step-4 error:", error);
     return NextResponse.json({ error: "Worker registration failed. Please try again." }, { status: 500 });
   }
 }

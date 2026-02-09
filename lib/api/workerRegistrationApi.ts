@@ -5,9 +5,6 @@ export type RegisterWorkerStep1Payload = {
   email: string;
   phone: string;
   password: string;
-  skills: string[];
-  experienceYears: number;
-  workDescription?: string;
 };
 
 export type RegisterWorkerStep1Response = {
@@ -19,14 +16,11 @@ export type RegisterWorkerStep1Response = {
 
 export type RegisterWorkerStep2Payload = {
   userId: string;
-  street: string;
-  unit?: string;
-  city: string;
-  state: string;
-  zip: string;
-  serviceRadiusMiles: number;
-  latitude?: number | null;
-  longitude?: number | null;
+  experienceYears: number;
+  skills: string[];
+  workDescription?: string;
+  payType: "HOURLY" | "DAILY" | "WEEKLY" | "MONTHLY";
+  rate: number;
 };
 
 export type RegisterWorkerStep2Response = {
@@ -37,13 +31,31 @@ export type RegisterWorkerStep2Response = {
 
 export type RegisterWorkerStep3Payload = {
   userId: string;
+  street: string;
+  unit?: string;
+  city: string;
+  state: string;
+  zip: string;
+  serviceRadiusMiles: number;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
+export type RegisterWorkerStep3Response = {
+  success: boolean;
+  message: string;
+  workerId: string;
+};
+
+export type RegisterWorkerStep4Payload = {
+  userId: string;
   idFront?: boolean;
   idBack?: boolean;
   license?: boolean;
   consent: boolean;
 };
 
-export type RegisterWorkerStep3Response = {
+export type RegisterWorkerStep4Response = {
   success: boolean;
   message: string;
 };
@@ -73,6 +85,13 @@ export const workerRegistrationApi = createApi({
         body: payload,
       }),
     }),
+    registerWorkerStep4: builder.mutation<RegisterWorkerStep4Response, RegisterWorkerStep4Payload>({
+      query: (payload) => ({
+        url: "api/auth/register/worker/step-4",
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -80,4 +99,5 @@ export const {
   useRegisterWorkerStep1Mutation,
   useRegisterWorkerStep2Mutation,
   useRegisterWorkerStep3Mutation,
+  useRegisterWorkerStep4Mutation,
 } = workerRegistrationApi;

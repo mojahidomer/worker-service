@@ -10,9 +10,6 @@ const registerWorkerStep1Schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
   phone: z.string().min(1, "Phone is required").max(50),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
-  skills: z.array(z.string()).min(1, "Skills are required").max(50),
-  experienceYears: z.number().int().min(0, "Experience must be 0 or more").max(100, "Max 100 years"),
-  workDescription: z.string().max(2000).optional(),
 });
 
 export async function POST(request: Request) {
@@ -26,7 +23,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const { fullName, email, phone, password, skills, experienceYears } = parsed.data;
+    const { fullName, email, phone, password } = parsed.data;
 
     const existingUser = await prisma.user.findFirst({
       where: { OR: [{ email }, { phone }] },
@@ -79,8 +76,9 @@ export async function POST(request: Request) {
           name: fullName,
           phone,
           email,
-          skills,
-          experienceYears,
+          skills: [],
+          experienceYears: 0,
+          payType: "HOURLY",
           pricePerService: 0,
           serviceRadiusKm: 5,
           addressId: addressRecord.id,
