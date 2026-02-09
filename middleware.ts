@@ -11,6 +11,8 @@ export async function middleware(req: NextRequest) {
   // Public routes — no auth required
   const isPublic =
     pathname === "/" ||
+    pathname.startsWith("/find") ||
+    pathname.startsWith("/worker") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/api/auth");
