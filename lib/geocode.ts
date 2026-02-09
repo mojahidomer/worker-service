@@ -38,7 +38,7 @@ export async function reverseGeocode(
 
   const streetNumber = getComponent(ac, "street_number");
   const route = getComponent(ac, "route");
-  const line1 = [streetNumber, route].filter(Boolean).join(" ") || r.formatted_address ?? "—";
+  const line1 = ([streetNumber, route].filter(Boolean).join(" ") || r.formatted_address) ?? "—";
 
   const area =
     getComponent(ac, "sublocality_level_1") ||
@@ -58,8 +58,18 @@ export async function reverseGeocode(
   const pincode = getComponent(ac, "postal_code") || "—";
 
   const loc = r.geometry?.location;
-  const lat = loc && typeof loc.lat === "function" ? loc.lat() : (loc as { lat: number })?.lat ?? latitude;
-  const lng = loc && typeof loc.lng === "function" ? loc.lng() : (loc as { lng: number })?.lng ?? longitude;
+  const latRaw = loc
+    ? typeof loc.lat === "function"
+      ? (loc.lat as () => number)()
+      : (loc as unknown as { lat?: number }).lat
+    : undefined;
+  const lngRaw = loc
+    ? typeof loc.lng === "function"
+      ? (loc.lng as () => number)()
+      : (loc as unknown as { lng?: number }).lng
+    : undefined;
+  const lat = (latRaw != null && Number.isFinite(latRaw) ? latRaw : latitude) as number;
+  const lng = (lngRaw != null && Number.isFinite(lngRaw) ? lngRaw : longitude) as number;
 
   return {
     line1: line1.trim() || "—",

@@ -1,4 +1,4 @@
-import type { FieldValues, UseFormSetError } from "react-hook-form";
+import type { FieldPath, FieldValues, UseFormSetError } from "react-hook-form";
 
 type FieldMatcher<T extends FieldValues> = {
   field: keyof T;
@@ -30,7 +30,7 @@ export function useServerFieldErrors<T extends FieldValues>(
     const matched = matchers.find((matcher) => matcher.pattern.test(message));
 
     if (matched) {
-      setError(matched.field, { type: "server", message });
+      setError(matched.field as FieldPath<T>, { type: "server", message });
       return { handled: true, message };
     }
 

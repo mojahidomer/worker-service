@@ -36,7 +36,7 @@ function placeToAddress(place: google.maps.places.PlaceResult): AddressFormState
   const ac = place.address_components ?? [];
   const streetNumber = getComponent(ac, "street_number");
   const route = getComponent(ac, "route");
-  const line1 = [streetNumber, route].filter(Boolean).join(" ") || place.formatted_address ?? "";
+  const line1 = ([streetNumber, route].filter(Boolean).join(" ") || place.formatted_address) ?? "";
 
   const area =
     getComponent(ac, "sublocality_level_1") ||
@@ -58,8 +58,10 @@ function placeToAddress(place: google.maps.places.PlaceResult): AddressFormState
   const location = place.geometry?.location;
   if (!location) return null;
 
-  const latitude = typeof location.lat === "function" ? location.lat() : location.lat;
-  const longitude = typeof location.lng === "function" ? location.lng() : location.lng;
+  const latVal = typeof location.lat === "function" ? (location.lat as () => number)() : (location as unknown as { lat?: number }).lat;
+  const lngVal = typeof location.lng === "function" ? (location.lng as () => number)() : (location as unknown as { lng?: number }).lng;
+  const latitude = typeof latVal === "number" && Number.isFinite(latVal) ? latVal : 0;
+  const longitude = typeof lngVal === "number" && Number.isFinite(lngVal) ? lngVal : 0;
 
   return {
     line1: line1.trim() || "—",

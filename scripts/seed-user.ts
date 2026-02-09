@@ -11,6 +11,7 @@ const prisma = new PrismaClient();
 const EMAIL = process.env.SEED_EMAIL ?? "admin@example.com";
 const PASSWORD = process.env.SEED_PASSWORD ?? "admin123";
 const ROLE = (process.env.SEED_ROLE ?? "ADMIN") as "USER" | "WORKER" | "ADMIN";
+const PHONE = process.env.SEED_PHONE ?? "+91-9999999999";
 
 async function main() {
   const passwordHash = await hash(PASSWORD, 10);
@@ -20,6 +21,7 @@ async function main() {
     create: {
       email: EMAIL,
       name: "Test User",
+      phone: PHONE,
       passwordHash,
       role: ROLE,
     },

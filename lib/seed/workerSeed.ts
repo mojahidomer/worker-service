@@ -53,7 +53,7 @@ export async function seedWorkers(count = 10000) {
       const lastName = faker.person.lastName();
       const fullName = `${firstName} ${lastName}`;
       const email = `worker-${randomUUID()}@localpros.com`;
-      const phone = faker.phone.number("+91-##########");
+      const phone = `+91-${faker.string.numeric(10)}`;
       const skills = faker.helpers.arrayElements(SKILLS, { min: 1, max: 2 });
       const experienceYears = faker.number.int({ min: 1, max: 25 });
       const pricePerService = faker.number.int({ min: 200, max: 2000 });
@@ -105,7 +105,30 @@ export async function seedWorkers(count = 10000) {
     }
 
     await prisma.address.createMany({ data: addresses, skipDuplicates: true });
-    await prisma.user.createMany({ data: users, skipDuplicates: true });
-    await prisma.worker.createMany({ data: workers, skipDuplicates: true });
+    await prisma.user.createMany({
+      data: users as Array<{ id: string; name: string; email: string; phone: string; passwordHash: string; role: "WORKER"; addressId: string }>,
+      skipDuplicates: true,
+    });
+    await prisma.worker.createMany({
+      data: workers as Array<{
+        id: string;
+        userId: string;
+        name: string;
+        phone: string;
+        email: string | null;
+        skills: string[];
+        experienceYears: number;
+        workDescription: string | null;
+        payType: "HOURLY" | "DAILY" | "WEEKLY" | "MONTHLY";
+        pricePerService: number;
+        serviceRadiusKm: number;
+        rating: number;
+        totalReviews: number;
+        status: "ACTIVE";
+        profileVisible: boolean;
+        addressId: string;
+      }>,
+      skipDuplicates: true,
+    });
   }
 }

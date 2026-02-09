@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader } from "../_components/Loader";
@@ -23,7 +23,7 @@ type WorkerCard = {
   distance?: number;
 };
 
-export default function FindWorkerPage() {
+function FindWorkerPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialCategoryRaw = searchParams.get("skill") ?? "";
@@ -397,5 +397,13 @@ export default function FindWorkerPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function FindWorkerPage() {
+  return (
+    <Suspense fallback={<Loader label="Loading..." />}>
+      <FindWorkerPageContent />
+    </Suspense>
   );
 }
