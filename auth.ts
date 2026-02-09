@@ -1,6 +1,9 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import type { Adapter } from "next-auth/adapters";
+import type { Session, User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import { compare } from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -17,7 +20,7 @@ export const ROLE_REDIRECT: Record<string, string> = {
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as Adapter,
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -68,23 +71,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: { id?: string; role?: string }; user?: { id: string; role: string } }) {
-      if (user) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
+      if (user?.id) {
         token.id = user.id;
-        token.role = user.role;
+        token.role = (user as User & { role?: string }).role;
       }
       return token;
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: { user?: { id?: string; role?: string } };
-      token: { id?: string; role?: string };
-    }) {
+    async session({ session, token }: { session: Session; token: JWT }): Promise<Session> {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role as "USER" | "WORKER" | "ADMIN";
+        if (typeof token.id === "string") session.user.id = token.id;
+        (session.user as User & { role?: string }).role = (token.role as "USER" | "WORKER" | "ADMIN") ?? "USER";
       }
       return session;
     },

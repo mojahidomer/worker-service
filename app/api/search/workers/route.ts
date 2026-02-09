@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { sqltag as sql, raw } from "@prisma/client/runtime/library";
 
 export async function GET(request: Request) {
   try {
@@ -37,43 +37,40 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "radius must be a positive number" }, { status: 400 });
     }
 
-    const point = Prisma.sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography`;
-    const workerPoint = Prisma.sql`ST_SetSRID(ST_MakePoint(a."longitude", a."latitude"), 4326)::geography`;
+    const point = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography`;
+    const workerPoint = sql`${raw('ST_SetSRID(ST_MakePoint(a."longitude", a."latitude"), 4326)::geography')}`;
 
-    const distanceMeters = Prisma.sql`ST_Distance(${workerPoint}, ${point})`;
+    const distanceMeters = sql`ST_Distance(${workerPoint}, ${point})`;
 
     const withinRadius = radiusKm
-      ? Prisma.sql`ST_DWithin(${workerPoint}, ${point}, ${radiusKm * 1000})`
-      : Prisma.sql`TRUE`;
+      ? sql`ST_DWithin(${workerPoint}, ${point}, ${radiusKm * 1000})`
+      : sql`TRUE`;
 
-    const withinWorkerRadius = Prisma.sql`ST_DWithin(${workerPoint}, ${point}, (w."serviceRadiusKm" * 1000))`;
+    const withinWorkerRadius = sql`ST_DWithin(${workerPoint}, ${point}, ${raw('(w."serviceRadiusKm" * 1000)')})`;
 
-    let skillPredicate = Prisma.sql``;
-    services.forEach((svc, index) => {
-      if (index === 0) {
-        skillPredicate = Prisma.sql`s ILIKE ${`%${svc}%`}`;
-      } else {
-        skillPredicate = Prisma.sql`${skillPredicate} OR s ILIKE ${`%${svc}%`}`;
-      }
-    });
+    const skillConditions = services.map((svc) => sql`s ILIKE ${`%${svc}%`}`);
+    const skillPredicate =
+      skillConditions.length === 1
+        ? skillConditions[0]
+        : skillConditions.reduce((acc, cond) => sql`${acc} OR ${cond}`);
 
-    const serviceFilter = Prisma.sql`EXISTS (
+    const serviceFilter = sql`EXISTS (
       SELECT 1 FROM unnest(w."skills") s
       WHERE ${skillPredicate}
     )`;
 
-    const rows = await prisma.$queryRaw<
-      Array<{
-        id: string;
-        name: string;
-        skills: string[];
-        rating: number;
-        serviceRadiusKm: number;
-        city: string;
-        area: string;
-        distanceMeters: number;
-      }>
-    >`
+    type WorkerRow = {
+      id: string;
+      name: string;
+      skills: string[];
+      rating: number;
+      serviceRadiusKm: number;
+      city: string;
+      area: string;
+      distanceMeters: number;
+    };
+
+    const rows = await prisma.$queryRaw<WorkerRow[]>`
       SELECT
         w."id",
         w."name",
@@ -99,7 +96,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       count: rows.length,
-      data: rows.map((row) => ({
+      data: rows.map((row: WorkerRow) => ({
         id: row.id,
         name: row.name,
         skills: row.skills,

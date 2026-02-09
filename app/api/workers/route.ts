@@ -49,13 +49,18 @@ export async function GET(request: Request) {
       ];
 
       if (skillList.length) {
+        let skillPredicate = Prisma.sql``;
+        skillList.forEach((skill, index) => {
+          if (index === 0) {
+            skillPredicate = Prisma.sql`s = ${skill}`;
+          } else {
+            skillPredicate = Prisma.sql`${skillPredicate} OR s = ${skill}`;
+          }
+        });
         filters.push(
           Prisma.sql`EXISTS (
             SELECT 1 FROM unnest(w."skills") s
-            WHERE ${Prisma.join(
-              skillList.map((skill) => Prisma.sql`s = ${skill}`),
-              Prisma.sql` OR `
-            )}
+            WHERE ${skillPredicate}
           )`
         );
       }

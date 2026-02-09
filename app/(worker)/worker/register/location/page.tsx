@@ -139,8 +139,8 @@ export default function WorkerRegisterLocationPage() {
 
             const loc = place?.geometry?.location;
             if (loc) {
-              const lat = typeof loc.lat === "function" ? loc.lat() : loc.lat;
-              const lng = typeof loc.lng === "function" ? loc.lng() : loc.lng;
+              const lat = typeof loc.lat === "function" ? loc.lat() : Number(loc.lat);
+              const lng = typeof loc.lng === "function" ? loc.lng() : Number(loc.lng);
               setValue("latitude", lat, { shouldValidate: true });
               setValue("longitude", lng, { shouldValidate: true });
               map.setCenter({ lat, lng });
