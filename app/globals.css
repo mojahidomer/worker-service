@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Ensure Tailwind v4 scans ui and app for class names */
+@source "../ui/**/*.tsx";
+@source "../ui/**/*.jsx";
+@source "./**/*.tsx";
+@source "./**/*.jsx";
+@source "ui/**/*.tsx";
+@source "app/**/*.tsx";
+
+@theme {
+  --color-brand-green: #00c444;
+  --color-brand-mint: #dbf7e5;
+  --color-neutral-placeholder: #757575;
+  --color-neutral-muted: #949494;
+  --color-neutral-border: #e8e8e8;
+  --color-neutral-input: #fbfaf9;
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --shadow-search: 0px 4px 12px 0px rgba(0, 0, 0, 0.05);
+}

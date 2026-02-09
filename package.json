@@ -1,0 +1,44 @@
+{
+  "name": "next-auth-app",
+  "version": "0.1.0",
+  "private": true,
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "seed": "prisma db seed"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@hookform/resolvers": "^3.10.0",
+    "@prisma/client": "^6.1.0",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@reduxjs/toolkit": "^2.2.5",
+    "bcryptjs": "^2.4.3",
+    "next": "^15.1.0",
+    "next-auth": "^5.0.0-beta.25",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.71.1",
+    "react-redux": "^9.1.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/google.maps": "^3.58.0",
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.2.0",
+    "@faker-js/faker": "^9.6.0",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "prisma": "^6.1.0",
+    "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

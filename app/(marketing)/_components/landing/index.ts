@@ -1,0 +1,13 @@
+export { LandingNav } from "./shared/LandingNav";
+export { LandingFooter } from "./shared/LandingFooter";
+export { HeroSection } from "./sections/HeroSection";
+export { StatsSection } from "./sections/StatsSection";
+export { PopularCategoriesSection } from "./sections/PopularCategoriesSection";
+export { HowItWorksSection } from "./sections/HowItWorksSection";
+export { FeaturedProsSection } from "./sections/FeaturedProsSection";
+export { TestimonialsSection } from "./sections/TestimonialsSection";
+export { TrustSection } from "./sections/TrustSection";
+export { FaqSection } from "./sections/FaqSection";
+export { AppDownloadSection } from "./sections/AppDownloadSection";
+export { ServiceAreasSection } from "./sections/ServiceAreasSection";
+export { CtaSection } from "./sections/CtaSection";

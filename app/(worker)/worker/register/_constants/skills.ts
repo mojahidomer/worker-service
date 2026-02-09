@@ -1,0 +1,15 @@
+export const SKILL_OPTIONS = [
+  "Plumbing",
+  "Electrical",
+  "Cleaning",
+  "HVAC Repair",
+  "Appliance Repair",
+  "Painting",
+  "Carpentry",
+  "Roofing",
+  "Landscaping",
+  "Handyman",
+  "Flooring",
+  "Drywall",
+  "Pest Control",
+];

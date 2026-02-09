@@ -1,0 +1,306 @@
+// Prisma schema: NextAuth + app models
+// https://authjs.dev/getting-started/adapters/prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/////////////////////////
+// ENUMS
+/////////////////////////
+
+enum Role {
+  USER
+  WORKER
+  ADMIN
+}
+
+enum WorkerStatus {
+  INACTIVE
+  ACTIVE
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum PayerType {
+  USER
+  WORKER
+}
+
+/////////////////////////
+// NEXTAUTH (required for auth)
+/////////////////////////
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+/////////////////////////
+// USER (auth + profile)
+/////////////////////////
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  phone         String    @unique
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  passwordHash  String?   @map("password_hash")
+  role          Role      @default(USER)
+
+  isPaidUser  Boolean  @default(false)
+  addressId   String?
+  address     Address? @relation(fields: [addressId], references: [id])
+
+  accounts   Account[]
+  sessions   Session[]
+  worker     Worker?
+  bookings   Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+/////////////////////////
+// ADDRESS (GEO ENABLED)
+/////////////////////////
+
+model Address {
+  id        String   @id @default(uuid())
+
+  line1     String
+  line2     String?
+  area      String
+  city      String
+  state     String
+  country   String
+  pincode   String
+
+  latitude  Float
+  longitude Float
+
+  users          User[]
+  workers        Worker[]
+  serviceBookings Booking[] @relation("BookingServiceAddress")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/////////////////////////
+// WORKER
+/////////////////////////
+
+model Worker {
+  id                String        @id @default(uuid())
+  userId            String        @unique @map("user_id")
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name              String
+  phone             String        @unique
+  email             String?       @unique
+
+  skills            String[]
+  experienceYears   Int
+  pricePerService   Float
+
+  serviceRadiusKm   Int           @default(5)
+
+  rating            Float         @default(0)
+  totalReviews      Int           @default(0)
+
+  status            WorkerStatus  @default(INACTIVE)
+  profileVisible    Boolean        @default(false) // Display only when status=ACTIVE and subscription not expired (see lib/worker-visibility)
+
+  addressId         String        @map("address_id")
+  address           Address       @relation(fields: [addressId], references: [id])
+
+  subscriptions     WorkerSubscription[]
+  payments          Payment[]
+  bookings          Booking[]
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("workers")
+}
+
+/////////////////////////
+// SERVICE TYPES
+/////////////////////////
+
+model ServiceType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_types")
+}
+
+/////////////////////////
+// SUBSCRIPTION PLAN
+/////////////////////////
+
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  name            String
+  price           Float
+  durationInDays  Int
+  isActive        Boolean  @default(true)
+
+  subscriptions   WorkerSubscription[]
+
+  createdAt       DateTime @default(now())
+}
+
+/////////////////////////
+// WORKER SUBSCRIPTION
+/////////////////////////
+
+model WorkerSubscription {
+  id         String              @id @default(uuid())
+
+  workerId   String              @map("worker_id")
+  worker     Worker              @relation(fields: [workerId], references: [id])
+
+  planId     String              @map("plan_id")
+  plan       SubscriptionPlan    @relation(fields: [planId], references: [id])
+
+  startDate  DateTime            @map("start_date")
+  endDate    DateTime            @map("end_date")
+
+  status     SubscriptionStatus  @default(ACTIVE)
+  autoRenew  Boolean             @default(false) @map("auto_renew")
+
+  createdAt  DateTime            @default(now())
+
+  @@map("worker_subscriptions")
+}
+
+/////////////////////////
+// PAYMENT
+/////////////////////////
+
+model Payment {
+  id            String         @id @default(uuid())
+
+  payerType     PayerType      @map("payer_type")
+  payerId       String         @map("payer_id")
+
+  workerId      String?        @map("worker_id")
+  worker        Worker?        @relation(fields: [workerId], references: [id])
+
+  amount        Float
+  currency      String         @default("INR")
+  method        String
+  status        PaymentStatus
+
+  referenceId   String?        @map("reference_id")
+
+  createdAt     DateTime       @default(now())
+
+  @@map("payments")
+}
+
+/////////////////////////
+// SERVICE CATEGORY
+/////////////////////////
+
+model ServiceCategory {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  iconUrl   String?  @map("icon_url")
+  isActive  Boolean  @default(true)
+
+  bookings  Booking[]
+
+  createdAt DateTime @default(now())
+
+  @@map("service_categories")
+}
+
+/////////////////////////
+// BOOKING
+/////////////////////////
+
+model Booking {
+  id                 String   @id @default(uuid())
+
+  userId             String   @map("user_id")
+  user               User     @relation(fields: [userId], references: [id])
+
+  workerId           String   @map("worker_id")
+  worker             Worker   @relation(fields: [workerId], references: [id])
+
+  serviceCategoryId  String   @map("service_category_id")
+  serviceCategory    ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
+
+  serviceAddressId   String   @map("service_address_id")
+  serviceAddress     Address  @relation("BookingServiceAddress", fields: [serviceAddressId], references: [id])
+
+  status             String
+
+  scheduledAt        DateTime @map("scheduled_at")
+
+  createdAt          DateTime @default(now())
+
+  @@map("bookings")
+}
