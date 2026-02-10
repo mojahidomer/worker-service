@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SectionHeader } from "../shared/SectionHeader";
 
 const WORKERS = [
@@ -91,9 +92,12 @@ export function WorkerCardsSection() {
                     <span className="text-[12px] font-semibold text-black">{worker.price}</span>
                     <span className="text-[11px] text-neutral-muted">📞 {worker.phone}</span>
                   </div>
-                  <button className="rounded-[10px] bg-brand-green px-3 py-2 text-[11px] font-semibold text-white transition-all group-hover:translate-x-0.5">
+                  <Link
+                    href="/worker/demo"
+                    className="rounded-[10px] bg-brand-green px-3 py-2 text-[11px] font-semibold text-white transition-all group-hover:translate-x-0.5"
+                  >
                     View Profile
-                  </button>
+                  </Link>
                 </div>
               </div>
             </article>
